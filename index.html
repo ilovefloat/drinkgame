@@ -36,12 +36,17 @@
         font-weight: bold;
         z-index: 10;
     }
-    #status { color: #e94560; text-align: center; font-size: 22px; }
+    #status { color: #e94560; text-align: center; font-size: 22px; transition: color 0.3s; }
     
-    #help-btn {
+    .top-btns {
         position: absolute;
         top: 20px;
         right: 30px;
+        display: flex;
+        gap: 15px;
+        z-index: 50;
+    }
+    .icon-btn {
         width: 40px;
         height: 40px;
         border-radius: 50%;
@@ -53,12 +58,11 @@
         font-size: 24px;
         font-weight: bold;
         cursor: pointer;
-        z-index: 50;
         box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     }
-    #help-btn:hover { background-color: #3b8bc2; transform: scale(1.1); }
+    .icon-btn:hover { background-color: #3b8bc2; transform: scale(1.1); }
     
-    #help-modal {
+    .modal {
         position: fixed;
         top: 50%;
         left: 50%;
@@ -73,8 +77,8 @@
         max-width: 550px;
         text-align: left;
     }
-    #help-modal h2 { margin-top: 0; color: #e94560; }
-    #help-modal p { font-size: 15px; line-height: 1.5; margin-bottom: 10px; color: #ddd; }
+    .modal h2 { margin-top: 0; color: #e94560; }
+    .modal p { font-size: 15px; line-height: 1.5; margin-bottom: 10px; color: #ddd; }
     .close-btn {
         display: block;
         width: 100%;
@@ -88,6 +92,11 @@
         margin-top: 20px;
     }
     .close-btn:hover { background: #d1304b; }
+
+    #offset-slider {
+        width: 100%;
+        margin: 15px 0;
+    }
 
     #seq-display {
         position: absolute;
@@ -137,7 +146,6 @@
         transition: box-shadow 0.2s, transform 0.1s, left 0.3s, top 0.3s;
     }
     .player.human { background-color: #e94560; }
-    /* Visual highlight for active players */
     .player.active { box-shadow: 0 0 25px 8px #4ea8de; transform: translate(-50%, -50%) scale(1.25); }
     
     .floating-input {
@@ -153,33 +161,73 @@
         0% { opacity: 1; transform: translateY(0) scale(1); }
         100% { opacity: 0; transform: translateY(-50px) scale(1.2); }
     }
-    #beat-bar {
+
+    /* Rhythm Track & Visual Feedback */
+    #timing-track {
         position: absolute;
-        bottom: 30px;
+        bottom: 50px;
         left: 50%;
         transform: translateX(-50%);
-        display: flex;
-        gap: 20px;
-    }
-    .beat-box {
-        width: 55px;
-        height: 55px;
-        background-color: #0f3460;
+        width: 80%;
+        max-width: 600px;
+        height: 60px;
+        background-color: rgba(15, 52, 96, 0.6);
         border-radius: 10px;
+        box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+        overflow: hidden;
+        transition: box-shadow 0.1s;
+    }
+    #hit-target {
+        position: absolute;
+        top: 0; bottom: 0;
+        left: 20%;
+        width: 4px;
+        background-color: #f9a03f;
+        box-shadow: 0 0 15px 3px rgba(249, 160, 63, 0.8);
+        transform: translateX(-50%);
+        z-index: 5;
+        transition: background-color 0.1s, box-shadow 0.1s;
+    }
+    .scroll-note {
+        position: absolute;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 36px;
+        height: 36px;
+        background-color: #4ea8de;
+        border-radius: 50%;
         display: flex;
         justify-content: center;
         align-items: center;
         font-weight: bold;
-        font-size: 22px;
         color: #fff;
-        opacity: 0.4;
-        transition: all 0.1s;
+        z-index: 10;
+        display: none; 
     }
-    .beat-box.active {
-        background-color: #4ea8de;
-        opacity: 1;
-        box-shadow: 0 0 20px #4ea8de;
-        transform: scale(1.15);
+    .scroll-note.accent {
+        background-color: #e94560;
+        width: 44px;
+        height: 44px;
+        font-size: 20px;
+    }
+
+    #judgment-display {
+        position: absolute;
+        bottom: 120px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 28px;
+        font-weight: bold;
+        text-transform: uppercase;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 40;
+    }
+    @keyframes judgmentPop {
+        0% { opacity: 0; transform: translate(-50%, 20px) scale(0.8); }
+        20% { opacity: 1; transform: translate(-50%, 0) scale(1.2); }
+        80% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+        100% { opacity: 0; transform: translate(-50%, -10px) scale(0.9); }
     }
 
     #start-overlay {
@@ -211,20 +259,30 @@
     <div class="hud">
         <div id="time-display">Survival: 0.0s</div>
         <div id="status">Waiting to Start</div>
-        <div id="bpm-display" style="margin-right: 50px;">BPM: 100 | Lives: 3</div>
+        <div id="bpm-display" style="margin-right: 120px;">BPM: 100 | Lives: 3</div>
     </div>
     
-    <div id="help-btn">?</div>
+    <div class="top-btns">
+        <div class="icon-btn" id="settings-btn">⚙️</div>
+        <div class="icon-btn" id="help-btn">?</div>
+    </div>
     
     <div id="seq-display"></div>
     <div id="intro-display"></div>
     <div id="players-layer"></div>
     
-    <div id="beat-bar">
-        <div class="beat-box" id="beat-1">1</div>
-        <div class="beat-box" id="beat-2">2</div>
-        <div class="beat-box" id="beat-3">3</div>
-        <div class="beat-box" id="beat-4">4</div>
+    <div id="judgment-display"></div>
+
+    <div id="timing-track">
+        <div id="hit-target"></div>
+        <div class="scroll-note" id="note-0"></div>
+        <div class="scroll-note" id="note-1"></div>
+        <div class="scroll-note" id="note-2"></div>
+        <div class="scroll-note" id="note-3"></div>
+        <div class="scroll-note" id="note-4"></div>
+        <div class="scroll-note" id="note-5"></div>
+        <div class="scroll-note" id="note-6"></div>
+        <div class="scroll-note" id="note-7"></div>
     </div>
 
     <div id="start-overlay">
@@ -232,7 +290,16 @@
     </div>
 </div>
 
-<div id="help-modal">
+<div id="settings-modal" class="modal">
+    <h2>Settings</h2>
+    <p><strong>Latency Offset (ms)</strong></p>
+    <p>If inputs feel out of sync with audio, adjust this slider.</p>
+    <p>Current Offset: <span id="offset-val" style="color:#f9a03f; font-weight:bold;">0ms</span></p>
+    <input type="range" id="offset-slider" min="-300" max="300" value="0" step="5">
+    <button class="close-btn" id="close-settings">Save & Close</button>
+</div>
+
+<div id="help-modal" class="modal">
     <h2>Game Rules & Memory Challenge</h2>
     <p><strong>I'm GND:</strong><br>
     - Attack: Target bot's letter on beat 3 + number (1-4) on beat 4.<br>
@@ -245,7 +312,7 @@
     - You are always "Tofu 3". Beat 3: Dubu Char. Beat 4: Target Number (1,2,4,5).<br>
     - 4 = Right, 5 = Right-next. 2 = Left, 1 = Left-next.<br>
     - <em>Memory: Active player highlight vanishes after turn 1! (Win at 30 turns)</em></p>
-    <p style="color:#e94560; font-weight:bold;">* Difficulty spikes! Completing a game OR making a mistake permanently adds +10 to BPM!</p>
+    <p style="color:#e94560; font-weight:bold;">* Difficulty spikes! +5 BPM every 5 turns. +10 Base BPM per game completed!</p>
     <button class="close-btn" id="close-help">Got it!</button>
 </div>
 
@@ -261,38 +328,40 @@
     
     let baseBpm = 100; 
     let bpm = 100; 
+    let globalOffset = 0; 
     
-    // Stats
     let accumulatedTime = 0;
     let lastFrameTime = 0;
     let loseCount = 0;
     let modeTurnCount = 0;
     
-    // Exact Beat Timing Engine
-    let currentBeat = 0; 
-    let lastBeatTime = 0;
-    let nextBeatTime = 0;
-    let beatInputs = {}; 
+    // Engine State
+    let anchorTime = 0;
+    let currentAbsoluteBeat = -1;
+    let lastProcessedBeat = -1;
+    let audioScheduledBeat = -1;
+    let measureFinalizeTime = 0;
     
-    // Mode Control
+    let phaseStartAbsBeat = 0; 
+    let phaseBeatCount = 0; 
+    let beatInputs = {}; 
+    let audioCtx = null;
+
     let currentGameMode = 'GND'; 
     let seqTimeout = null;
     let introWords = [];
     
-    // Variables
+    // Game Variables
     let phase = 'ATTACK'; 
     let pendingAttackCount = 0; 
     let botTarget = null;
     let botNum = 0;
-
     let fruitChars = [];
     let fruitCount = 1;
     let fruitDirection = 1;
-
     let whaleChar = 'A';
     let whaleCount = 1;
     let whaleDirection = 1;
-
     let dubuChar = 'D';
 
     const gameContainer = document.getElementById('game-container');
@@ -300,18 +369,64 @@
     const statusEl = document.getElementById('status');
     const seqDisplayEl = document.getElementById('seq-display');
     const introDisplayEl = document.getElementById('intro-display');
+    const judgmentDisplay = document.getElementById('judgment-display');
     const startOverlay = document.getElementById('start-overlay');
     const helpModal = document.getElementById('help-modal');
+    const settingsModal = document.getElementById('settings-modal');
+    const scrollNotes = Array.from(document.querySelectorAll('.scroll-note'));
+    const timingTrack = document.getElementById('timing-track');
+    const hitTarget = document.getElementById('hit-target');
 
+    // UI Listeners
     document.getElementById('help-btn').addEventListener('click', () => helpModal.style.display = 'block');
     document.getElementById('close-help').addEventListener('click', () => helpModal.style.display = 'none');
+    document.getElementById('settings-btn').addEventListener('click', () => settingsModal.style.display = 'block');
+    document.getElementById('close-settings').addEventListener('click', () => settingsModal.style.display = 'none');
+    document.getElementById('offset-slider').addEventListener('input', (e) => {
+        globalOffset = parseInt(e.target.value);
+        document.getElementById('offset-val').innerText = `${globalOffset}ms`;
+    });
+
+    function playClick(time, isHigh) {
+        if (!audioCtx) return;
+        let osc = audioCtx.createOscillator();
+        let gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'triangle'; 
+        osc.frequency.setValueAtTime(isHigh ? 880 : 440, time);
+        gain.gain.setValueAtTime(0.5, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+        osc.start(time);
+        osc.stop(time + 0.05);
+    }
+
+    function showJudgment(text, color) {
+        judgmentDisplay.innerText = text;
+        judgmentDisplay.style.color = color;
+        judgmentDisplay.style.textShadow = `0 0 10px ${color}`;
+        judgmentDisplay.style.animation = 'none';
+        void judgmentDisplay.offsetWidth; 
+        judgmentDisplay.style.animation = 'judgmentPop 0.5s ease-out forwards';
+    }
+
+    function flashHitTarget(color) {
+        hitTarget.style.backgroundColor = color;
+        hitTarget.style.boxShadow = `0 0 20px 5px ${color}`;
+        timingTrack.style.boxShadow = `inset 0 0 30px ${color}`;
+        
+        setTimeout(() => {
+            hitTarget.style.backgroundColor = "#f9a03f";
+            hitTarget.style.boxShadow = "0 0 15px 3px rgba(249, 160, 63, 0.8)";
+            timingTrack.style.boxShadow = "inset 0 0 15px rgba(0,0,0,0.8)";
+        }, 150);
+    }
 
     function positionPlayers() {
         if (players.length === 0) return;
         const centerX = window.innerWidth / 2;
         const centerY = window.innerHeight / 2 - 20; 
         const radius = Math.min(window.innerWidth, window.innerHeight) * 0.3; 
-
         players.forEach((p, i) => {
             let angle = (i * 72) * (Math.PI / 180) - (Math.PI / 2);
             p.x = centerX + radius * Math.cos(angle);
@@ -341,15 +456,12 @@
         }
 
         positionPlayers();
-
         baseBpm = 100;
         loseCount = 0;
         accumulatedTime = 0;
         lastFrameTime = performance.now();
         isPlaying = true;
-        
         document.getElementById('start-btn').innerText = "Restart Game";
-        
         initRound();
         requestAnimationFrame(gameLoop);
     }
@@ -357,10 +469,9 @@
     function initRound() {
         bpm = baseBpm; 
         beatInputs = {};
-        currentBeat = 0;
-        modeTurnCount = 0;
         isPaused = false;
         isIntroPhase = true; 
+        modeTurnCount = 0;
         
         if (seqTimeout) clearTimeout(seqTimeout);
         seqDisplayEl.style.display = 'none';
@@ -376,19 +487,36 @@
         introWords = [displayModeName, "GAME", "LET'S", "START!"];
 
         activePlayer = players[Math.floor(Math.random() * players.length)];
-        
         setActiveVisual(null, false);
         statusEl.innerText = `Get Ready...`;
+        statusEl.style.color = '#e94560';
         updateHUD();
         
-        // Setup strict timing for the upcoming beats
-        nextBeatTime = performance.now() + 1000;
-        lastBeatTime = nextBeatTime - (60000 / bpm);
+        anchorTime = performance.now() + 1000; 
+        currentAbsoluteBeat = -1;
+        lastProcessedBeat = -1;
+        audioScheduledBeat = -1;
+        measureFinalizeTime = 0;
+        phaseStartAbsBeat = 0; 
+        phaseBeatCount = 0;
+    }
+
+    function changeBpmSmoothly(newBpm) {
+        let now = performance.now();
+        let currentFloat = (now - anchorTime) / (60000 / bpm);
+        bpm = newBpm;
+        let newBeatDuration = 60000 / bpm;
+        anchorTime = now - (currentFloat * newBeatDuration);
+        updateHUD();
     }
 
     function startModeLogic() {
-        isIntroPhase = false;
-        currentBeat = 0;
+        let now = performance.now();
+        let beatDuration = 60000 / bpm;
+        let visualFloat = (now - anchorTime - globalOffset) / beatDuration;
+        
+        phaseStartAbsBeat = Math.floor(visualFloat) + 1;
+        phaseBeatCount = 0;
         beatInputs = {};
 
         if (currentGameMode === 'GND') {
@@ -401,31 +529,26 @@
             seqDisplayEl.innerText = `Fruit Seq: ${fruitChars.join(' ')}`;
             seqDisplayEl.style.display = 'block';
             statusEl.innerText = `FRUIT: ${activePlayer.name}'s Turn`;
-            
             seqTimeout = setTimeout(() => {
                 seqDisplayEl.style.opacity = '0';
                 setTimeout(() => { if(!isPaused) seqDisplayEl.style.display = 'none'; }, 500);
             }, 7000);
-
         } else if (currentGameMode === 'WHALE') {
             whaleChar = letters[Math.floor(Math.random() * letters.length)];
             whaleCount = 1;
             whaleDirection = 1;
             statusEl.innerText = `WHALE: ${activePlayer.name}'s Turn (Char: ${whaleChar})`;
-            
         } else if (currentGameMode === 'DUBU') {
             dubuChar = letters[Math.floor(Math.random() * letters.length)];
             statusEl.innerText = `DUBU (Char: ${dubuChar})`;
         }
 
-        // Show starting player for the first turn to orient the user
         setActiveVisual(activePlayer, true);
     }
 
     function setActiveVisual(player, isStart = false) {
         document.querySelectorAll('.player').forEach(el => el.classList.remove('active'));
         if (player) {
-            // Memory Challenge: Hide active player for GND & DUBU after the first turn
             if (isStart || (currentGameMode !== 'GND' && currentGameMode !== 'DUBU')) {
                 player.element.classList.add('active');
             }
@@ -460,11 +583,67 @@
             if (!isIntroPhase) accumulatedTime += (now - lastFrameTime) / 1000;
             document.getElementById('time-display').innerText = `Survival: ${accumulatedTime.toFixed(1)}s`;
 
-            // Lock step with precise beat timing
-            if (now >= nextBeatTime) {
-                lastBeatTime = nextBeatTime;
-                nextBeatTime += (60000 / bpm);
-                processBeat();
+            let beatDuration = 60000 / bpm;
+            
+            // Audio Sched
+            let audioFloat = (now - anchorTime) / beatDuration;
+            let currentAudioBeat = Math.floor(audioFloat);
+            
+            if (audioCtx && isPlaying) {
+                let nextBeatIndex = currentAudioBeat + 1;
+                let nextBeatTimeAbs = anchorTime + (nextBeatIndex * beatDuration);
+                if (nextBeatTimeAbs - now < 150 && audioScheduledBeat < nextBeatIndex) {
+                    audioScheduledBeat = nextBeatIndex;
+                    let audioTime = audioCtx.currentTime + Math.max(0, (nextBeatTimeAbs - now) / 1000);
+                    let visualBeat = ((nextBeatIndex % 4) + 4) % 4 + 1;
+                    playClick(audioTime, visualBeat === 1);
+                }
+            }
+
+            // Visual Rendering
+            let visualFloat = (now - anchorTime - globalOffset) / beatDuration;
+            currentAbsoluteBeat = Math.floor(visualFloat);
+            
+            let noteIdx = 0;
+            for (let i = currentAbsoluteBeat - 1; i <= currentAbsoluteBeat + 4; i++) {
+                if (i < 0) continue;
+                let beatHitTime = anchorTime + (i * beatDuration) + globalOffset;
+                let timeUntil = beatHitTime - now;
+                let percentage = 20 + (timeUntil / (beatDuration * 2)) * 80;
+                
+                if (noteIdx < scrollNotes.length) {
+                    let el = scrollNotes[noteIdx];
+                    if (percentage >= -10 && percentage <= 110) {
+                        el.style.display = 'flex';
+                        el.style.left = `${percentage}%`;
+                        el.className = `scroll-note ${(i % 4 === 0) ? 'accent' : ''}`;
+                        el.innerText = ((i % 4) + 1).toString();
+                    } else {
+                        el.style.display = 'none';
+                    }
+                    noteIdx++;
+                }
+            }
+            while (noteIdx < scrollNotes.length) {
+                scrollNotes[noteIdx].style.display = 'none';
+                noteIdx++;
+            }
+
+            // Game Logic processing strictly on boundaries
+            if (currentAbsoluteBeat > lastProcessedBeat) {
+                while (lastProcessedBeat < currentAbsoluteBeat) {
+                    lastProcessedBeat++;
+                    processBeatLogic(lastProcessedBeat);
+                }
+            }
+
+            // Safely transition phases precisely in the middle between beats (+0.50)
+            if (measureFinalizeTime > 0 && now >= measureFinalizeTime) {
+                measureFinalizeTime = 0;
+                if (currentGameMode === 'GND') finalizeTurnGND();
+                else if (currentGameMode === 'FRUIT') finalizeTurnFruit();
+                else if (currentGameMode === 'WHALE') finalizeTurnWhale();
+                else if (currentGameMode === 'DUBU') finalizeTurnDubu();
             }
         }
         
@@ -482,57 +661,44 @@
         return null;
     }
 
-    function processBeat() {
-        currentBeat++;
-        
-        let visualBeat = ((currentBeat - 1) % 4) + 1;
-        for (let i = 1; i <= 4; i++) {
-            document.getElementById(`beat-${i}`).classList.remove('active');
-        }
-        document.getElementById(`beat-${visualBeat}`).classList.add('active');
+    function processBeatLogic(absBeat) {
+        if (absBeat < 0) return; 
+
+        let localMeasureBeat = (absBeat % 4) + 1; 
 
         if (isIntroPhase) {
-            showCenterIntroText(introWords[currentBeat - 1]);
-            if (currentBeat === 4) {
-                setTimeout(() => startModeLogic(), (60000 / bpm) * 0.9);
+            showCenterIntroText(introWords[localMeasureBeat - 1]);
+            if (localMeasureBeat === 4) {
+                setTimeout(() => { isIntroPhase = false; startModeLogic(); }, (60000 / bpm) * 0.9);
             }
             return;
         }
 
-        // Validate the previous beat immediately after its late-window has closed
-        if (currentBeat > 1) {
-            verifyBeatCompletion(currentBeat - 1);
-        }
+        phaseBeatCount++; 
+        if (phaseBeatCount > 1) verifyBeatCompletion(phaseBeatCount - 1);
 
-        let tolerance = (60000 / bpm) * 0.35; 
+        let maxExpectedBeats = (currentGameMode === 'FRUIT' && fruitCount > 4) ? 8 : 4;
 
-        // --- BOT AGENT DECISIONS ---
         if (currentGameMode === 'GND') {
             if (!activePlayer.isHuman) {
-                if (phase === 'DEFENSE') {
-                    if (currentBeat >= 5 - pendingAttackCount) showInputPopup(activePlayer, activePlayer.name);
-                } else if (phase === 'ATTACK') {
-                    if (currentBeat === 3) {
+                if (phase === 'DEFENSE' && phaseBeatCount >= 5 - pendingAttackCount && phaseBeatCount <= 4) showInputPopup(activePlayer, activePlayer.name);
+                else if (phase === 'ATTACK') {
+                    if (phaseBeatCount === 3) {
                         let targets = players.filter(p => p !== activePlayer);
                         botTarget = targets[Math.floor(Math.random() * targets.length)];
                         showInputPopup(activePlayer, botTarget.name);
                     }
-                    if (currentBeat === 4) {
+                    if (phaseBeatCount === 4) {
                         botNum = Math.floor(Math.random() * 4) + 1;
                         showInputPopup(activePlayer, botNum);
                     }
                 }
             }
-            if (currentBeat === 4) setTimeout(() => finalizeTurnGND(), tolerance);
-            
         } else if (currentGameMode === 'FRUIT') {
-            let turnBeats = fruitCount <= 4 ? 4 : 8;
             if (!activePlayer.isHuman) {
-                let expectedChar = getFruitCharForBeat(fruitCount, currentBeat);
+                let expectedChar = getFruitCharForBeat(fruitCount, phaseBeatCount);
                 if (expectedChar) showInputPopup(activePlayer, expectedChar);
             }
-            if (currentBeat === turnBeats) setTimeout(() => finalizeTurnFruit(), tolerance);
-            
         } else if (currentGameMode === 'WHALE') {
             if (!activePlayer.isHuman) {
                 let b0 = whaleCount >= 4 ? (whaleCount >= 5 ? 2 : 1) : 0;
@@ -540,22 +706,24 @@
                 let b2 = whaleCount >= 2 ? (whaleCount >= 7 ? 2 : 1) : 0;
                 let b3 = whaleCount >= 1 ? (whaleCount >= 8 ? 2 : 1) : 0;
                 let beatsArr = [b0, b1, b2, b3];
-                
-                let presses = beatsArr[currentBeat - 1];
+                let presses = beatsArr[phaseBeatCount - 1];
                 if (presses > 0) showInputPopup(activePlayer, whaleChar.repeat(presses));
             }
-            if (currentBeat === 4) setTimeout(() => finalizeTurnWhale(), tolerance);
-            
         } else if (currentGameMode === 'DUBU') {
             if (!activePlayer.isHuman) {
-                if (currentBeat === 3) showInputPopup(activePlayer, dubuChar);
-                if (currentBeat === 4) {
+                if (phaseBeatCount === 3) showInputPopup(activePlayer, dubuChar);
+                if (phaseBeatCount === 4) {
                     let options = [1, 2, 4, 5];
                     botNum = options[Math.floor(Math.random() * options.length)];
                     showInputPopup(activePlayer, botNum);
                 }
             }
-            if (currentBeat === 4) setTimeout(() => finalizeTurnDubu(), tolerance);
+        }
+
+        // Delay measure finalize to +50% of beat duration to fix late-input asymmetry
+        if (phaseBeatCount === maxExpectedBeats) {
+            let beatDuration = 60000 / bpm;
+            measureFinalizeTime = anchorTime + (absBeat * beatDuration) + globalOffset + (beatDuration * 0.50);
         }
     }
 
@@ -571,77 +739,57 @@
         }
 
         if (!isHumanTurn) return;
-
         let inputs = beatInputs[b] || [];
 
         if (currentGameMode === 'GND') {
             if (phase === 'DEFENSE') {
                 if (b >= 5 - pendingAttackCount && b <= 4) {
-                    if (inputs.length !== 1 || inputs[0] !== humanPlayer.name) {
-                        handleMistake(`Missed or incorrect defense key on beat ${b}!`);
-                    }
-                } else {
-                    if (inputs.length > 0) handleMistake(`Typed during silence beat ${b}!`);
-                }
+                    if (inputs.length !== 1 || inputs[0] !== humanPlayer.name) handleMistake("MISS!");
+                } else if (inputs.length > 0) handleMistake("SILENT BEAT!");
             } else if (phase === 'ATTACK') {
                 if (b === 3) {
-                    if (inputs.length !== 1) {
-                        handleMistake("Missed target letter on beat 3!");
-                    } else {
+                    if (inputs.length !== 1) handleMistake("MISS!");
+                    else {
                         let target = players.find(p => p.name === inputs[0] && !p.isHuman);
-                        if (!target) handleMistake("Invalid attack target name!");
+                        if (!target) handleMistake("WRONG TARGET!");
                     }
                 } else if (b === 4) {
-                    if (inputs.length !== 1 || !['1','2','3','4'].includes(inputs[0])) {
-                        handleMistake("Missed attack number (1-4) on beat 4!");
-                    }
-                } else {
-                    if (inputs.length > 0) handleMistake(`Typed during silence beat ${b}!`);
-                }
+                    if (inputs.length !== 1 || !['1','2','3','4'].includes(inputs[0])) handleMistake("MISS!");
+                } else if (inputs.length > 0) handleMistake("SILENT BEAT!");
             }
         } else if (currentGameMode === 'FRUIT') {
             let expectedChar = getFruitCharForBeat(fruitCount, b);
             if (expectedChar) {
-                if (inputs.length !== 1 || inputs[0] !== expectedChar) {
-                    handleMistake(`Missed or wrong sequence key on beat ${b}!`);
-                }
-            } else {
-                if (inputs.length > 0) handleMistake(`Typed on silence beat ${b}!`);
-            }
+                if (inputs.length !== 1 || inputs[0] !== expectedChar) handleMistake("MISS!");
+            } else if (inputs.length > 0) handleMistake("SILENT BEAT!");
         } else if (currentGameMode === 'WHALE') {
             let expectedCount = 0;
-            if (whaleCount <= 4) {
-                expectedCount = (b >= 5 - whaleCount) ? 1 : 0;
-            } else {
-                expectedCount = (b <= whaleCount - 4) ? 2 : 1;
-            }
+            if (whaleCount <= 4) expectedCount = (b >= 5 - whaleCount) ? 1 : 0;
+            else expectedCount = (b <= whaleCount - 4) ? 2 : 1;
 
             if (expectedCount > 0) {
-                if (inputs.length !== expectedCount) {
-                    handleMistake(`Beat ${b} expected ${expectedCount} hit(s), but got ${inputs.length}!`);
-                } else {
+                if (inputs.length !== expectedCount) handleMistake("MISS!");
+                else {
                     for (let char of inputs) {
                         if (char !== whaleChar) {
-                            handleMistake(`Wrong character typed on beat ${b}!`);
+                            handleMistake("WRONG CHAR!");
                             break;
                         }
                     }
                 }
-            } else {
-                if (inputs.length > 0) handleMistake(`Typed on silence beat ${b}!`);
-            }
+            } else if (inputs.length > 0) handleMistake("SILENT BEAT!");
         } else if (currentGameMode === 'DUBU') {
             if (b === 3) {
-                if (inputs.length !== 1 || inputs[0] !== dubuChar) {
-                    handleMistake(`Missed or wrong character on beat 3!`);
-                }
+                if (inputs.length !== 1 || inputs[0] !== dubuChar) handleMistake("MISS!");
             } else if (b === 4) {
-                if (inputs.length !== 1 || !['1','2','4','5'].includes(inputs[0])) {
-                    handleMistake(`Missed or invalid Tofu number on beat 4!`);
-                }
-            } else {
-                if (inputs.length > 0) handleMistake(`Typed on silence beat ${b}!`);
-            }
+                if (inputs.length !== 1 || !['1','2','4','5'].includes(inputs[0])) handleMistake("MISS!");
+            } else if (inputs.length > 0) handleMistake("SILENT BEAT!");
+        }
+    }
+
+    function checkAndApplyBpmIncrease() {
+        if (modeTurnCount > 0 && modeTurnCount % 5 === 0) {
+            changeBpmSmoothly(bpm + 5);
         }
     }
 
@@ -649,13 +797,11 @@
         if (isPaused) return;
         isPaused = true;
         statusEl.innerText = msg;
+        statusEl.style.color = '#4ea8de';
         
-        baseBpm += 10; // Increase difficulty on win!
+        baseBpm += 10; 
         updateHUD();
         
-        gameContainer.style.boxShadow = "inset 0 0 50px #4ea8de";
-        setTimeout(() => gameContainer.style.boxShadow = "none", 400);
-
         setTimeout(() => {
             initRound();
             lastFrameTime = performance.now(); 
@@ -668,6 +814,8 @@
         if (isPaused) return;
 
         modeTurnCount++;
+        checkAndApplyBpmIncrease();
+        
         if (modeTurnCount >= 30) {
             handleWin("I'm GND Mode Clear!");
             return;
@@ -687,11 +835,11 @@
             activePlayer = nextPlayer;
             setActiveVisual(activePlayer, false);
             statusEl.innerText = `I'm GND (Defense Phase)`;
-            bpm += 1;
-            updateHUD();
         }
+        
+        phaseStartAbsBeat = currentAbsoluteBeat + 1;
+        phaseBeatCount = 0;
         beatInputs = {};
-        currentBeat = 0;
     }
 
     function finalizeTurnFruit() {
@@ -699,6 +847,9 @@
         let turnBeats = fruitCount <= 4 ? 4 : 8;
         verifyBeatCompletion(turnBeats);
         if (isPaused) return;
+
+        modeTurnCount++;
+        checkAndApplyBpmIncrease();
 
         fruitCount += fruitDirection;
         if (fruitCount === 9) { fruitCount = 7; fruitDirection = -1; } 
@@ -711,16 +862,18 @@
         setActiveVisual(activePlayer, false);
         statusEl.innerText = `FRUIT: ${activePlayer.name}'s Turn`;
         
-        bpm += 1;
+        phaseStartAbsBeat = currentAbsoluteBeat + 1;
+        phaseBeatCount = 0;
         beatInputs = {};
-        currentBeat = 0;
-        updateHUD();
     }
 
     function finalizeTurnWhale() {
         if (isPaused || isIntroPhase) return;
         verifyBeatCompletion(4);
         if (isPaused) return;
+
+        modeTurnCount++;
+        checkAndApplyBpmIncrease();
 
         whaleCount += whaleDirection;
         if (whaleCount === 9) { whaleCount = 7; whaleDirection = -1; } 
@@ -733,10 +886,9 @@
         setActiveVisual(activePlayer, false);
         statusEl.innerText = `WHALE: ${activePlayer.name}'s Turn (Char: ${whaleChar})`;
         
-        bpm += 1;
+        phaseStartAbsBeat = currentAbsoluteBeat + 1;
+        phaseBeatCount = 0;
         beatInputs = {};
-        currentBeat = 0;
-        updateHUD();
     }
 
     function finalizeTurnDubu() {
@@ -745,15 +897,14 @@
         if (isPaused) return;
 
         modeTurnCount++;
+        checkAndApplyBpmIncrease();
+
         if (modeTurnCount >= 30) {
             handleWin("DUBU Mode Clear!");
             return;
         }
 
         let num = activePlayer.isHuman ? parseInt(beatInputs[4][0]) : botNum;
-        
-        // Accurate left/right calculation from player's perspective facing center
-        // 4 is Right (-1 index), 2 is Left (+1 index)
         let offset = 3 - num; 
         let nextId = (activePlayer.id + offset + 5) % 5;
 
@@ -761,20 +912,19 @@
         setActiveVisual(activePlayer, false);
         statusEl.innerText = `DUBU (Char: ${dubuChar})`;
         
-        bpm += 1;
+        phaseStartAbsBeat = currentAbsoluteBeat + 1;
+        phaseBeatCount = 0;
         beatInputs = {};
-        currentBeat = 0;
-        updateHUD();
     }
 
     function handleMistake(msg) {
         if (isPaused) return;
         loseCount++;
         isPaused = true;
-        statusEl.innerText = msg;
         
-        gameContainer.style.boxShadow = "inset 0 0 50px #e94560";
-        setTimeout(() => gameContainer.style.boxShadow = "none", 400);
+        // Pure visual feedback on beat bar
+        showJudgment(msg, '#e94560');
+        flashHitTarget('#e94560');
 
         if (loseCount >= 3) {
             isPlaying = false;
@@ -782,7 +932,7 @@
             startOverlay.style.display = 'flex';
             document.getElementById('start-btn').innerText = "Play Again";
         } else {
-            baseBpm += 10; // Increase difficulty even on mistake
+            baseBpm += 10; 
             updateHUD();
             setTimeout(() => {
                 initRound();
@@ -805,108 +955,93 @@
         }
 
         if (!isHumanTurn) {
-            handleMistake("Typed out of turn!");
+            handleMistake("OUT OF TURN!");
             return;
         }
 
-        // --- Exact Rhythm Mapping ---
         let now = performance.now();
         let beatDuration = 60000 / bpm;
-        let tolerance = beatDuration * 0.35; 
+        let exactFloat = (now - anchorTime - globalOffset) / beatDuration;
         
-        // Determine whether input belongs to the beat that just happened, or the one coming up
-        let d_last = Math.abs(now - lastBeatTime);
-        let d_next = Math.abs(now - nextBeatTime);
-        
-        let targetBeat;
-        if (d_last <= tolerance) {
-            targetBeat = currentBeat; // "Late" valid hit for the current beat
-        } else if (d_next <= tolerance) {
-            targetBeat = currentBeat + 1; // "Early" valid hit for the upcoming beat
-        } else {
-            handleMistake("Off-beat rhythm input!");
-            return;
-        }
+        let floatPhaseBeat = exactFloat - phaseStartAbsBeat + 1;
+        let targetPhaseBeat = Math.round(floatPhaseBeat);
+        let offsetError = Math.abs(floatPhaseBeat - targetPhaseBeat);
 
         let maxExpectedBeats = (currentGameMode === 'FRUIT' && fruitCount > 4) ? 8 : 4;
-        if (targetBeat < 1 || targetBeat > maxExpectedBeats) {
-            handleMistake("Off-beat keypress!");
+        
+        // Increased symmetric tolerance to 40% of the beat window
+        if (offsetError > 0.40) {
+            handleMistake("OFF-BEAT!");
+            return;
+        }
+        
+        if (targetPhaseBeat < 1 || targetPhaseBeat > maxExpectedBeats) {
+            handleMistake("OUT OF BOUNDS!");
             return;
         }
 
-        if (!beatInputs[targetBeat]) {
-            beatInputs[targetBeat] = [];
+        if (!beatInputs[targetPhaseBeat]) {
+            beatInputs[targetPhaseBeat] = [];
         }
-        beatInputs[targetBeat].push(key);
-
+        beatInputs[targetPhaseBeat].push(key);
         showInputPopup(humanPlayer, key);
 
-        // --- Instant Input Validation ---
-        let currentBeatInputs = beatInputs[targetBeat];
-        
+        // Success Visual Feedback
+        if (offsetError <= 0.15) {
+            showJudgment("PERFECT", "#ffcc00");
+            flashHitTarget("#ffcc00");
+        } else if (floatPhaseBeat < targetPhaseBeat) {
+            showJudgment("EARLY", "#4ea8de");
+            flashHitTarget("#4ea8de");
+        } else {
+            showJudgment("LATE", "#4ea8de");
+            flashHitTarget("#4ea8de");
+        }
+
+        // Instant validation hook
+        let currentBeatInputs = beatInputs[targetPhaseBeat];
         if (currentGameMode === 'GND') {
             if (phase === 'DEFENSE') {
-                if (targetBeat >= 5 - pendingAttackCount && targetBeat <= 4) {
-                    if (key !== humanPlayer.name || currentBeatInputs.length > 1) {
-                        handleMistake("Incorrect or extra key during defense!");
-                    }
-                } else {
-                    handleMistake("Typed on silent beat!");
-                }
+                if (targetPhaseBeat >= 5 - pendingAttackCount && targetPhaseBeat <= 4) {
+                    if (key !== humanPlayer.name || currentBeatInputs.length > 1) handleMistake("WRONG KEY!");
+                } else handleMistake("SILENT BEAT!");
             } else if (phase === 'ATTACK') {
-                if (targetBeat === 3) {
+                if (targetPhaseBeat === 3) {
                     let target = players.find(p => p.name === key && !p.isHuman);
-                    if (!target || currentBeatInputs.length > 1) {
-                        handleMistake("Wrong attack target letter!");
-                    }
-                } else if (targetBeat === 4) {
-                    if (!['1','2','3','4'].includes(key) || currentBeatInputs.length > 1) {
-                        handleMistake("Wrong attack number typed!");
-                    }
-                } else {
-                    handleMistake("Typed on silent beat!");
-                }
+                    if (!target || currentBeatInputs.length > 1) handleMistake("WRONG TARGET!");
+                } else if (targetPhaseBeat === 4) {
+                    if (!['1','2','3','4'].includes(key) || currentBeatInputs.length > 1) handleMistake("WRONG NUM!");
+                } else handleMistake("SILENT BEAT!");
             }
         } else if (currentGameMode === 'FRUIT') {
-            let expectedChar = getFruitCharForBeat(fruitCount, targetBeat);
+            let expectedChar = getFruitCharForBeat(fruitCount, targetPhaseBeat);
             if (expectedChar) {
-                if (key !== expectedChar || currentBeatInputs.length > 1) {
-                    handleMistake("Incorrect or duplicate key for Fruit sequence!");
-                }
-            } else {
-                handleMistake("Typed on silent beat!");
-            }
+                if (key !== expectedChar || currentBeatInputs.length > 1) handleMistake("WRONG KEY!");
+            } else handleMistake("SILENT BEAT!");
         } else if (currentGameMode === 'WHALE') {
             let expectedCount = 0;
-            if (whaleCount <= 4) {
-                expectedCount = (targetBeat >= 5 - whaleCount) ? 1 : 0;
-            } else {
-                expectedCount = (targetBeat <= whaleCount - 4) ? 2 : 1;
-            }
+            if (whaleCount <= 4) expectedCount = (targetPhaseBeat >= 5 - whaleCount) ? 1 : 0;
+            else expectedCount = (targetPhaseBeat <= whaleCount - 4) ? 2 : 1;
 
             if (expectedCount > 0) {
-                if (key !== whaleChar || currentBeatInputs.length > expectedCount) {
-                    handleMistake("Incorrect or duplicate key for Whale rhythm!");
-                }
-            } else {
-                handleMistake("Typed on silent beat!");
-            }
+                if (key !== whaleChar || currentBeatInputs.length > expectedCount) handleMistake("WRONG KEY!");
+            } else handleMistake("SILENT BEAT!");
         } else if (currentGameMode === 'DUBU') {
-            if (targetBeat === 3) {
-                if (key !== dubuChar || currentBeatInputs.length > 1) {
-                    handleMistake("Wrong character or duplicate in Dubu!");
-                }
-            } else if (targetBeat === 4) {
-                if (!['1','2','4','5'].includes(key) || currentBeatInputs.length > 1) {
-                    handleMistake("Wrong or invalid number in Dubu! (Must be 1, 2, 4, 5)");
-                }
-            } else {
-                handleMistake("Typed on silent beat in Dubu!");
-            }
+            if (targetPhaseBeat === 3) {
+                if (key !== dubuChar || currentBeatInputs.length > 1) handleMistake("WRONG CHAR!");
+            } else if (targetPhaseBeat === 4) {
+                if (!['1','2','4','5'].includes(key) || currentBeatInputs.length > 1) handleMistake("WRONG NUM!");
+            } else handleMistake("SILENT BEAT!");
         }
     });
 
     document.getElementById('start-btn').addEventListener('click', () => {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
         if (!isPlaying) initFullGame();
     });
 </script>
