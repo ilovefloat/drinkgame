@@ -259,7 +259,7 @@
     <div class="hud">
         <div id="time-display">Survival: 0.0s</div>
         <div id="status">Waiting to Start</div>
-        <div id="bpm-display" style="margin-right: 120px;">BPM: 100 | Lives: 3</div>
+        <div id="bpm-display" style="margin-right: 120px;">BPM: 90 | Lives: 3</div>
     </div>
     
     <div class="top-btns">
@@ -326,8 +326,8 @@
     let isPaused = false;
     let isIntroPhase = false; 
     
-    let baseBpm = 100; 
-    let bpm = 100; 
+    let baseBpm = 90; 
+    let bpm = 90; 
     let globalOffset = 0; 
     
     let accumulatedTime = 0;
@@ -456,7 +456,7 @@
         }
 
         positionPlayers();
-        baseBpm = 100;
+        baseBpm = 90;
         loseCount = 0;
         accumulatedTime = 0;
         lastFrameTime = performance.now();
